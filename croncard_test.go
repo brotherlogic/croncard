@@ -54,7 +54,7 @@ func TestCron(t *testing.T) {
 		curr, _ := time.Parse("2006-01-02 15:04", "2017-01-01 00:00")
 		end, _ := time.Parse("2006-01-02 15:04", "2018-01-01 00:00")
 
-		var cards []pb.Card
+		var cards []*pb.Card
 		for curr.Before(end) {
 			cards = append(cards, c.GetCards(curr)...)
 
@@ -65,7 +65,7 @@ func TestCron(t *testing.T) {
 			t.Errorf("Too many cards written %v vs %v", len(cards), len(test.card))
 		} else {
 			for i := range cards {
-				if !proto.Equal(&test.card[i], &cards[i]) {
+				if !proto.Equal(&test.card[i], cards[i]) {
 					t.Errorf("Mismatch in cards %v vs %v", cards[i], test.card[i])
 				}
 			}
