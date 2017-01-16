@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -24,6 +26,24 @@ type Cron struct {
 func Init() *Cron {
 	c := &Cron{}
 	c.last = time.Unix(0, 0)
+	return c
+}
+
+// InitFromFile loads a cron from a given file
+func InitFromFile(filename string) *Cron {
+	c := Init()
+
+	file, _ := os.Open(filename)
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		c.loadline(scanner.Text())
+	}
+
+	//if err := scanner.Err(); err != nil {
+	//	log.Fatal(err)
+	//}
+
 	return c
 }
 

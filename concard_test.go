@@ -16,6 +16,13 @@ var testdata = []struct {
 	{"2017-02-03 00:00~githubissueadd~Made Up Title~Made Up Test~component", []pb.Card{pb.Card{Text: "Made Up Title\nMade Up Test", Action: pb.Card_DISMISS, ApplicationDate: 1486080000, Priority: -1, Hash: "githubissueadd-component"}}},
 }
 
+func TestCronLoad(t *testing.T) {
+	c := InitFromFile("crontest.txt")
+	if len(c.crons) != 1 {
+		t.Errorf("Init has failed %v", c.crons)
+	}
+}
+
 func TestCron(t *testing.T) {
 	for _, test := range testdata {
 		c := Init()
