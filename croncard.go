@@ -92,15 +92,15 @@ func (c *Cron) isWritten(card pb.Card) bool {
 }
 
 //GetCards gets the cards up to the specified time
-func (c *Cron) GetCards(t time.Time) []pb.Card {
+func (c *Cron) GetCards(t time.Time) []*pb.Card {
 	newindex := 0
-	var cards []pb.Card
+	var cards []*pb.Card
 	for i, entry := range c.crons {
 		if entry.time.Before(t) {
 			newindex = i + 1
 			card := pb.Card{Text: entry.text, Action: pb.Card_DISMISS, ApplicationDate: entry.time.Unix(), Priority: -1, Hash: entry.hash}
 			if !c.isWritten(card) {
-				cards = append(cards, card)
+				cards = append(cards, &card)
 				c.writehash(card)
 			}
 		}
