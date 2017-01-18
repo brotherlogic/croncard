@@ -117,7 +117,7 @@ func (c *Cron) loadline(line string) {
 	elems := strings.Split(line, "~")
 	entry := cronentry{}
 	entry.time, _ = time.Parse("2006-01-02 15:04", elems[0])
-	entry.text = elems[2] + "\n" + elems[3]
+	entry.text = elems[2] + "|" + elems[3]
 	entry.hash = elems[1] + "-" + elems[4]
 
 	c.crons = append(c.crons, entry)

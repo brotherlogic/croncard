@@ -13,7 +13,7 @@ var testdata = []struct {
 	cronline string
 	card     []pb.Card
 }{
-	{"2017-02-03 00:00~githubissueadd~Made Up Title~Made Up Test~component", []pb.Card{pb.Card{Text: "Made Up Title\nMade Up Test", Action: pb.Card_DISMISS, ApplicationDate: 1486080000, Priority: -1, Hash: "githubissueadd-component"}}},
+	{"2017-02-03 00:00~githubissueadd~Made Up Title~Made Up Test~component", []pb.Card{pb.Card{Text: "Made Up Title|Made Up Test", Action: pb.Card_DISMISS, ApplicationDate: 1486080000, Priority: -1, Hash: "githubissueadd-component"}}},
 }
 
 func TestCronLoad(t *testing.T) {
