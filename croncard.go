@@ -71,8 +71,7 @@ func (c *Cron) writehash(card pb.Card) {
 		os.Create(c.dir + "/hash")
 	}
 
-	f, err := os.OpenFile(c.dir+"/hash", os.O_APPEND|os.O_WRONLY, 0600)
-	log.Printf("ERROR = %v", err)
+	f, _ := os.OpenFile(c.dir+"/hash", os.O_APPEND|os.O_WRONLY, 0600)
 	defer f.Close()
 	f.WriteString(hash(card.String()) + "\n")
 }
@@ -82,7 +81,6 @@ func (c *Cron) isWritten(card pb.Card) bool {
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		log.Printf("COMP %v and %v", scanner.Text(), hash(card.String()))
 		if scanner.Text() == hash(card.String()) {
 			return true
 		}
