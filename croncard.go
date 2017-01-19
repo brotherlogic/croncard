@@ -12,6 +12,20 @@ import (
 	pb "github.com/brotherlogic/cardserver/card"
 )
 
+const (
+	datestr = "2006-01-02 15:04"
+)
+
+func getTime(timestr string) (time.Time, error) {
+	t := time.Now()
+	return time.ParseInLocation(datestr, timestr, t.Location())
+}
+
+func getUnixTime(timestr string) int64 {
+	t, _ := getTime(timestr)
+	return t.Unix()
+}
+
 type cronentry struct {
 	time time.Time
 	text string
@@ -114,7 +128,7 @@ func (c *Cron) logd() {
 func (c *Cron) loadline(line string) {
 	elems := strings.Split(line, "~")
 	entry := cronentry{}
-	entry.time, _ = time.Parse("2006-01-02 15:04", elems[0])
+	entry.time, _ = getTime(elems[0])
 	entry.text = elems[2] + "|" + elems[3]
 	entry.hash = elems[1] + "-" + elems[4]
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"testing"
 	"time"
 
@@ -13,7 +14,22 @@ var testdata = []struct {
 	cronline string
 	card     []pb.Card
 }{
-	{"2017-02-03 00:00~githubissueadd~Made Up Title~Made Up Test~component", []pb.Card{pb.Card{Text: "Made Up Title|Made Up Test", Action: pb.Card_DISMISS, ApplicationDate: 1486080000, Priority: -1, Hash: "githubissueadd-component"}}},
+	{"2017-02-03 00:00~githubissueadd~Made Up Title~Made Up Test~component", []pb.Card{pb.Card{Text: "Made Up Title|Made Up Test", Action: pb.Card_DISMISS, ApplicationDate: getUnixTime("2017-02-03 00:00"), Priority: -1, Hash: "githubissueadd-component"}}},
+}
+
+func TestTimeParse(t *testing.T) {
+	t1 := time.Now()
+	log.Printf("Now = %v", t1)
+	t1 = t1.Round(time.Minute)
+	tstr := t1.Format(datestr)
+	t2, err := getTime(tstr)
+
+	if err != nil {
+		t.Errorf("Parsing failed: %v", err)
+	}
+	if !t1.Equal(t2) {
+		t.Errorf("Parsing time has failed: %v vs %v", t1, t2)
+	}
 }
 
 func TestCronLoad(t *testing.T) {
@@ -28,7 +44,7 @@ func TestNoDoubleOnReload(t *testing.T) {
 	c := Init(".testreload")
 	c.clearhash()
 	c.loadline(testdata[0].cronline)
-	end, _ := time.Parse("2006-01-02 15:04", "2018-01-01 00:00")
+	end, _ := getTime("2018-01-01 00:00")
 	cards := c.GetCards(end)
 	if len(cards) != 1 {
 		t.Errorf("Failure to pull correct number of cards: %v", cards)
@@ -51,8 +67,8 @@ func TestCron(t *testing.T) {
 		c.logd()
 
 		//Run through the whole of 2017, at random
-		curr, _ := time.Parse("2006-01-02 15:04", "2017-01-01 00:00")
-		end, _ := time.Parse("2006-01-02 15:04", "2018-01-01 00:00")
+		curr, _ := getTime("2017-01-01 00:00")
+		end, _ := getTime("2018-01-01 00:00")
 
 		var cards []*pb.Card
 		for curr.Before(end) {
