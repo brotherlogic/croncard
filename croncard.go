@@ -16,6 +16,10 @@ const (
 	datestr = "2006-01-02 15:04"
 )
 
+var (
+	daysOfTheWeek = []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
+)
+
 func getTime(timestr string) (time.Time, error) {
 	t := time.Now()
 	return time.ParseInLocation(datestr, timestr, t.Location())
@@ -27,7 +31,8 @@ func getUnixTime(timestr string) int64 {
 }
 
 type cronentry struct {
-	time time.Time
+	time *time.Time
+	day  string
 	text string
 	hash string
 }
@@ -103,17 +108,40 @@ func (c *Cron) isWritten(card pb.Card) bool {
 	return false
 }
 
-//GetCards gets the cards up to the specified time
-func (c *Cron) GetCards(t time.Time) []*pb.Card {
+//GetCards gets the cards between the specified times
+func (c *Cron) GetCards(ts time.Time, te time.Time) []*pb.Card {
 	newindex := 0
 	var cards []*pb.Card
 	for i, entry := range c.crons {
-		if entry.time.Before(t) {
-			newindex = i + 1
-			card := pb.Card{Text: entry.text, Action: pb.Card_DISMISS, ApplicationDate: entry.time.Unix(), Priority: -1, Hash: entry.hash}
-			if !c.isWritten(card) {
-				cards = append(cards, &card)
-				c.writehash(card)
+		if entry.time != nil {
+			if (entry.time.Before(te) || entry.time.Equal(te)) && entry.time.After(ts) {
+				newindex = i + 1
+				card := pb.Card{Text: entry.text, Action: pb.Card_DISMISS, ApplicationDate: entry.time.Unix(), Priority: -1, Hash: entry.hash}
+				if !c.isWritten(card) {
+					cards = append(cards, &card)
+					c.writehash(card)
+				}
+			}
+		} else if entry.day != "" {
+			// Hack central
+			stime := ts
+			stime = stime.Add(-time.Hour * time.Duration(stime.Hour()))
+			stime = stime.Add(-time.Minute * time.Duration(stime.Minute()))
+			stime = stime.Add(-time.Second * time.Duration(stime.Second()))
+
+			count := 1
+			for stime.Before(te) {
+				if stime.Format("Mon") == entry.day {
+					card := pb.Card{Text: entry.text, Action: pb.Card_DISMISS, ApplicationDate: stime.Unix(), Priority: -1, Hash: entry.hash}
+					if !c.isWritten(card) {
+						log.Printf("WRITING %v", card)
+						cards = append(cards, &card)
+						c.writehash(card)
+					}
+				}
+
+				count++
+				stime = stime.Add(time.Hour * 24)
 			}
 		}
 	}
@@ -125,10 +153,24 @@ func (c *Cron) logd() {
 	log.Printf("LEN = %v", len(c.crons))
 }
 
+func matches(s string, strs []string) bool {
+	for _, str := range strs {
+		if s == str {
+			return true
+		}
+	}
+	return false
+}
+
 func (c *Cron) loadline(line string) {
 	elems := strings.Split(line, "~")
 	entry := cronentry{}
-	entry.time, _ = getTime(elems[0])
+	if matches(elems[0], daysOfTheWeek) {
+		entry.day = elems[0]
+	} else {
+		t, _ := getTime(elems[0])
+		entry.time = &t
+	}
 	entry.text = elems[2] + "|" + elems[3]
 	entry.hash = elems[1] + "-" + elems[4]
 
