@@ -25,7 +25,7 @@ func getIP(servername string, ip string, port int) (string, int) {
 
 func main() {
 	c := InitFromFile("crontstore", "cron")
-	cards := c.GetCards(time.Now())
+	cards := c.GetCards(c.last, time.Now())
 
 	var host = flag.String("host", "10.0.1.17", "Hostname of server.")
 	var port = flag.Int("port", 50055, "Port number of server")
