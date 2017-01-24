@@ -91,7 +91,28 @@ func TestNoDoubleOnReload(t *testing.T) {
 	if len(cards) != 0 {
 		t.Errorf("Failure to pull correct number of cards on reload: %v", cards)
 	}
+}
 
+func TestNoDoubleOnReloadWithDaily(t *testing.T) {
+	c := Init(".testreload2")
+	c.clearhash()
+	c.loadline(testcounts[1].cronline)
+	start, _ := getTime("2017-01-01 00:00")
+	end, _ := getTime("2017-01-01 23:00")
+	cards := c.GetCards(start, end)
+	log.Printf("HERE1 = %v", cards)
+	if len(cards) != 1 {
+		t.Errorf("Failure to pull correct number of cards: %v", cards)
+	}
+
+	c2 := Init(".testreload2")
+	c2.last = time.Unix(0, 0)
+	c2.loadline(testcounts[1].cronline)
+	cards = c2.GetCards(start, end)
+	log.Printf("HERE2 = %v", cards)
+	if len(cards) != 0 {
+		t.Errorf("Failure to pull correct number of cards on reload: %v", cards)
+	}
 }
 
 func TestCron(t *testing.T) {

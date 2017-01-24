@@ -40,9 +40,10 @@ type cronentry struct {
 
 // Cron the main cronentry holder
 type Cron struct {
-	crons []cronentry
-	last  time.Time
-	dir   string
+	crons   []cronentry
+	last    time.Time
+	dir     string
+	written map[string]bool
 }
 
 // Init prepares a cron for use
@@ -54,6 +55,8 @@ func Init(dir string) *Cron {
 	if _, err := os.Stat(c.dir); os.IsNotExist(err) {
 		os.MkdirAll(c.dir, 0777)
 	}
+
+	c.loadhash()
 
 	return c
 }
@@ -82,7 +85,23 @@ func hash(s string) string {
 	return strconv.Itoa(int(h.Sum32()))
 }
 
+func (c *Cron) loadhash() {
+	log.Printf("LOADING HASh")
+	c.written = make(map[string]bool)
+	file, _ := os.Open(c.dir + "/hash")
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		c.written[scanner.Text()] = true
+	}
+
+	for key, blah := range c.written {
+		log.Printf("LOADED %v -> %v", key, blah)
+	}
+}
+
 func (c *Cron) clearhash() {
+	c.written = make(map[string]bool)
 	os.Remove(c.dir + "/hash")
 }
 
@@ -93,24 +112,17 @@ func (c *Cron) writehash(card pb.Card) {
 
 	f, _ := os.OpenFile(c.dir+"/hash", os.O_APPEND|os.O_WRONLY, 0600)
 	defer f.Close()
+	c.written[hash(card.String())] = true
 	f.WriteString(hash(card.String()) + "\n")
 }
 
 func (c *Cron) isWritten(card pb.Card) bool {
-	file, _ := os.Open(c.dir + "/hash")
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		if scanner.Text() == hash(card.String()) {
-			return true
-		}
-	}
-
-	return false
+	return c.written[hash(card.String())]
 }
 
 //GetCards gets the cards between the specified times
 func (c *Cron) GetCards(ts time.Time, te time.Time) []*pb.Card {
+	log.Printf("FROM %v to %v with %v", ts, te, c.crons)
 	newindex := 0
 	var cards []*pb.Card
 	for i, entry := range c.crons {
@@ -154,6 +166,7 @@ func (c *Cron) GetCards(ts time.Time, te time.Time) []*pb.Card {
 			count := 1
 			for stime.Before(te) {
 				card := pb.Card{Text: entry.text, Action: pb.Card_DISMISS, ApplicationDate: stime.Unix(), Priority: -1, Hash: entry.hash}
+				log.Printf("WRITTEN = %v", c.isWritten(card))
 				if !c.isWritten(card) {
 					log.Printf("%v - %v", stime, entry.hash)
 					cards = append(cards, &card)
