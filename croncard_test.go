@@ -22,6 +22,7 @@ var testcounts = []struct {
 	count    int
 }{
 	{"Wed~githubissueadd~Made Up Title~Made Up Test~component", 52},
+	{"Daily~githubissueadd~Made Up Title~Made Up Test~component", 365},
 }
 
 func TestCounts(t *testing.T) {
