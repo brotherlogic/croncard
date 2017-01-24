@@ -31,10 +31,11 @@ func getUnixTime(timestr string) int64 {
 }
 
 type cronentry struct {
-	time *time.Time
-	day  string
-	text string
-	hash string
+	time  *time.Time
+	daily bool
+	day   string
+	text  string
+	hash  string
 }
 
 // Cron the main cronentry holder
@@ -134,10 +135,29 @@ func (c *Cron) GetCards(ts time.Time, te time.Time) []*pb.Card {
 				if stime.Format("Mon") == entry.day {
 					card := pb.Card{Text: entry.text, Action: pb.Card_DISMISS, ApplicationDate: stime.Unix(), Priority: -1, Hash: entry.hash}
 					if !c.isWritten(card) {
-						log.Printf("WRITING %v", card)
 						cards = append(cards, &card)
 						c.writehash(card)
 					}
+				}
+
+				count++
+				stime = stime.Add(time.Hour * 24)
+			}
+		} else if entry.daily {
+			// Hack central
+			stime := ts
+			stime = stime.Add(-time.Hour * time.Duration(stime.Hour()))
+			stime = stime.Add(-time.Minute * time.Duration(stime.Minute()))
+			stime = stime.Add(-time.Second * time.Duration(stime.Second()))
+			stime = stime.Add(time.Hour * time.Duration(5))
+
+			count := 1
+			for stime.Before(te) {
+				card := pb.Card{Text: entry.text, Action: pb.Card_DISMISS, ApplicationDate: stime.Unix(), Priority: -1, Hash: entry.hash}
+				if !c.isWritten(card) {
+					log.Printf("%v - %v", stime, entry.hash)
+					cards = append(cards, &card)
+					c.writehash(card)
 				}
 
 				count++
@@ -167,6 +187,8 @@ func (c *Cron) loadline(line string) {
 	entry := cronentry{}
 	if matches(elems[0], daysOfTheWeek) {
 		entry.day = elems[0]
+	} else if elems[0] == "Daily" {
+		entry.daily = true
 	} else {
 		t, _ := getTime(elems[0])
 		entry.time = &t
