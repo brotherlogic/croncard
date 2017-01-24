@@ -25,21 +25,26 @@ func getIP(servername string, ip string, port int) (string, int) {
 
 func main() {
 	c := InitFromFile("crontstore", "cron")
+	dryRun := flag.Bool("dry_run", false, "Don't write anything.")
 	cards := c.GetCards(c.last, time.Now())
 
-	var host = flag.String("host", "10.0.1.17", "Hostname of server.")
-	var port = flag.Int("port", 50055, "Port number of server")
+	if *dryRun {
+		log.Printf("Would write: %v", cards)
+	} else {
+		var host = flag.String("host", "10.0.1.17", "Hostname of server.")
+		var port = flag.Int("port", 50055, "Port number of server")
 
-	cServer, cPort := getIP("cardserver", *host, *port)
-	conn, err := grpc.Dial(cServer+":"+strconv.Itoa(cPort), grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("Failure to dial cardserver (%v)", err)
-	}
-	defer conn.Close()
-	client := pbc.NewCardServiceClient(conn)
+		cServer, cPort := getIP("cardserver", *host, *port)
+		conn, err := grpc.Dial(cServer+":"+strconv.Itoa(cPort), grpc.WithInsecure())
+		if err != nil {
+			log.Fatalf("Failure to dial cardserver (%v)", err)
+		}
+		defer conn.Close()
+		client := pbc.NewCardServiceClient(conn)
 
-	_, err = client.AddCards(context.Background(), &pbc.CardList{Cards: cards})
-	if err != nil {
-		log.Fatalf("Failure to add cards: %v", err)
+		_, err = client.AddCards(context.Background(), &pbc.CardList{Cards: cards})
+		if err != nil {
+			log.Fatalf("Failure to add cards: %v", err)
+		}
 	}
 }
