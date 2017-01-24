@@ -161,9 +161,7 @@ func (c *Cron) GetCards(ts time.Time, te time.Time) []*pb.Card {
 			count := 1
 			for stime.Before(te) {
 				card := pb.Card{Text: entry.text, Action: pb.Card_DISMISS, ApplicationDate: stime.Unix(), Priority: -1, Hash: entry.hash}
-				log.Printf("WRITTEN = %v", c.isWritten(card))
 				if !c.isWritten(card) {
-					log.Printf("%v - %v", stime, entry.hash)
 					cards = append(cards, &card)
 					c.writehash(card)
 				}
