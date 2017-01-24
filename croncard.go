@@ -86,7 +86,6 @@ func hash(s string) string {
 }
 
 func (c *Cron) loadhash() {
-	log.Printf("LOADING HASh")
 	c.written = make(map[string]bool)
 	file, _ := os.Open(c.dir + "/hash")
 	defer file.Close()
@@ -95,9 +94,6 @@ func (c *Cron) loadhash() {
 		c.written[scanner.Text()] = true
 	}
 
-	for key, blah := range c.written {
-		log.Printf("LOADED %v -> %v", key, blah)
-	}
 }
 
 func (c *Cron) clearhash() {
@@ -122,7 +118,6 @@ func (c *Cron) isWritten(card pb.Card) bool {
 
 //GetCards gets the cards between the specified times
 func (c *Cron) GetCards(ts time.Time, te time.Time) []*pb.Card {
-	log.Printf("FROM %v to %v with %v", ts, te, c.crons)
 	newindex := 0
 	var cards []*pb.Card
 	for i, entry := range c.crons {
