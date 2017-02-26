@@ -14,22 +14,25 @@ var testdata = []struct {
 	cronline string
 	card     []pb.Card
 }{
-	{"2017-02-03 00:00~githubissueadd~Made Up Title~Made Up Test~component", []pb.Card{pb.Card{Text: "Made Up Title|Made Up Test", Action: pb.Card_DISMISS, ApplicationDate: getUnixTime("2017-02-03 00:00"), Priority: -1, Hash: "githubissueadd-component"}}},
+	{"2017-02-03 00:00~githubissueadd~Made Up Title~Made Up Test~component", []pb.Card{pb.Card{Text: "Made Up Title|Made Up Test", Action: pb.Card_DISMISS, ApplicationDate: getUnixTime("2017-02-03 00:00"), Priority: -1, Hash: "githubissueadd-Made Up Title-component"}}},
 }
 
 var testcounts = []struct {
-	cronline string
+	cronline []string
 	count    int
 }{
-	{"Wed~githubissueadd~Made Up Title~Made Up Test~component", 52},
-	{"Daily~githubissueadd~Made Up Title~Made Up Test~component", 365},
+	{[]string{"Wed~githubissueadd~Made Up Title~Made Up Test~component"}, 52},
+	{[]string{"Daily~githubissueadd~Made Up Title~Made Up Test~component"}, 365},
+	{[]string{"Daily~addgithubissue~Record Check~Bedroom~home", "Daily~addgithubissue~Clear Email~Bedroom~home"}, 365 * 2},
 }
 
 func TestCounts(t *testing.T) {
 	for _, test := range testcounts {
 		c := Init(".testcronforcounting")
 		c.clearhash()
-		c.loadline(test.cronline)
+		for _, line := range test.cronline {
+			c.loadline(line)
+		}
 		c.logd()
 
 		//Run through the whole of 2017, at random
@@ -96,7 +99,7 @@ func TestNoDoubleOnReload(t *testing.T) {
 func TestNoDoubleOnReloadWithDaily(t *testing.T) {
 	c := Init(".testreload2")
 	c.clearhash()
-	c.loadline(testcounts[1].cronline)
+	c.loadline(testcounts[1].cronline[0])
 	start, _ := getTime("2017-01-01 00:00")
 	end, _ := getTime("2017-01-01 23:00")
 	cards := c.GetCards(start, end)
@@ -107,7 +110,7 @@ func TestNoDoubleOnReloadWithDaily(t *testing.T) {
 
 	c2 := Init(".testreload2")
 	c2.last = time.Unix(0, 0)
-	c2.loadline(testcounts[1].cronline)
+	c2.loadline(testcounts[1].cronline[0])
 	cards = c2.GetCards(start, end)
 	log.Printf("HERE2 = %v", cards)
 	if len(cards) != 0 {

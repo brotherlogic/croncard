@@ -200,7 +200,8 @@ func (c *Cron) loadline(line string) {
 		entry.time = &t
 	}
 	entry.text = elems[2] + "|" + elems[3]
-	entry.hash = elems[1] + "-" + elems[4]
+	entry.hash = elems[1] + "-" + elems[2] + "-" + elems[4]
 
+	log.Printf("HASH = %v", entry.hash)
 	c.crons = append(c.crons, entry)
 }
