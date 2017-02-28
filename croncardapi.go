@@ -28,11 +28,12 @@ func main() {
 	c := InitFromFile("crontstore", "cron")
 	dryRun := flag.Bool("dry_run", false, "Don't write anything.")
 	quiet := flag.Bool("quiet", true, "Don't log owt.")
-	cards := c.GetCards(c.last, time.Now())
 
 	if *quiet {
 		log.SetOutput(ioutil.Discard)
 	}
+
+	cards := c.GetCards(c.last, time.Now())
 
 	if *dryRun {
 		log.Printf("Would write: %v", cards)
