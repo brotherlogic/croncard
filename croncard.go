@@ -172,6 +172,7 @@ func (c *Cron) GetCards(ts time.Time, te time.Time) []*pb.Card {
 		}
 	}
 	c.crons = c.crons[newindex:]
+	log.Printf("RETURNING: %v", cards)
 	return cards
 }
 

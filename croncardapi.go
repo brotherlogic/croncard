@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"log"
 	"strconv"
 	"time"
@@ -26,7 +27,12 @@ func getIP(servername string, ip string, port int) (string, int) {
 func main() {
 	c := InitFromFile("crontstore", "cron")
 	dryRun := flag.Bool("dry_run", false, "Don't write anything.")
+	quiet := flag.Bool("quiet", true, "Don't log owt.")
 	cards := c.GetCards(c.last, time.Now())
+
+	if *quiet {
+		log.SetOutput(ioutil.Discard)
+	}
 
 	if *dryRun {
 		log.Printf("Would write: %v", cards)
