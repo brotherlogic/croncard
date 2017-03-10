@@ -33,6 +33,7 @@ func getUnixTime(timestr string) int64 {
 type cronentry struct {
 	time  *time.Time
 	daily bool
+	skip  int
 	day   string
 	text  string
 	hash  string
@@ -137,9 +138,11 @@ func (c *Cron) GetCards(ts time.Time, te time.Time) []*pb.Card {
 			stime = stime.Add(-time.Minute * time.Duration(stime.Minute()))
 			stime = stime.Add(-time.Second * time.Duration(stime.Second()))
 
+			_, yearWeek := stime.ISOWeek()
+
 			count := 1
 			for stime.Before(te) {
-				if stime.Format("Mon") == entry.day {
+				if stime.Format("Mon") == entry.day && yearWeek%entry.skip == 0 {
 					card := pb.Card{Text: entry.text, Action: pb.Card_DISMISS, ApplicationDate: stime.Unix(), Priority: -1, Hash: entry.hash}
 					if !c.isWritten(card) {
 						cards = append(cards, &card)
@@ -172,7 +175,6 @@ func (c *Cron) GetCards(ts time.Time, te time.Time) []*pb.Card {
 		}
 	}
 	c.crons = c.crons[newindex:]
-	log.Printf("RETURNING: %v", cards)
 	return cards
 }
 
@@ -192,10 +194,14 @@ func matches(s string, strs []string) bool {
 func (c *Cron) loadline(line string) {
 	elems := strings.Split(line, "~")
 	entry := cronentry{}
+	entry.skip = 1
 	if matches(elems[0], daysOfTheWeek) {
 		entry.day = elems[0]
 	} else if elems[0] == "Daily" {
 		entry.daily = true
+	} else if strings.HasPrefix(elems[0], "Bi") {
+		entry.skip = 2
+		entry.day = elems[0][2:]
 	} else {
 		t, _ := getTime(elems[0])
 		entry.time = &t

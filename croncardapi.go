@@ -28,6 +28,7 @@ func main() {
 	c := InitFromFile("crontstore", "cron")
 	dryRun := flag.Bool("dry_run", false, "Don't write anything.")
 	quiet := flag.Bool("quiet", true, "Don't log owt.")
+	flag.Parse()
 
 	if *quiet {
 		log.SetOutput(ioutil.Discard)
