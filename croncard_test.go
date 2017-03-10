@@ -24,6 +24,7 @@ var testcounts = []struct {
 	{[]string{"Wed~githubissueadd~Made Up Title~Made Up Test~component"}, 52},
 	{[]string{"Daily~githubissueadd~Made Up Title~Made Up Test~component"}, 365},
 	{[]string{"Daily~addgithubissue~Record Check~Bedroom~home", "Daily~addgithubissue~Clear Email~Bedroom~home"}, 365 * 2},
+	{[]string{"BiWed~githubissueadd~Made Up Title~Made Up Test~component"}, 26},
 }
 
 func TestCounts(t *testing.T) {
