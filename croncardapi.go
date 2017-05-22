@@ -21,7 +21,12 @@ func getIP(servername string, ip string, port int) (string, int) {
 
 	registry := pbdi.NewDiscoveryServiceClient(conn)
 	entry := pbdi.RegistryEntry{Name: servername}
-	r, _ := registry.Discover(context.Background(), &entry)
+	r, err := registry.Discover(context.Background(), &entry)
+
+	if err != nil {
+		return "", -1
+	}
+
 	return r.Ip, int(r.Port)
 }
 
@@ -45,16 +50,18 @@ func main() {
 		var port = flag.Int("port", 50055, "Port number of server")
 
 		cServer, cPort := getIP("cardserver", *host, *port)
-		conn, err := grpc.Dial(cServer+":"+strconv.Itoa(cPort), grpc.WithInsecure())
-		if err != nil {
-			log.Fatalf("Failure to dial cardserver (%v)", err)
-		}
-		defer conn.Close()
-		client := pbc.NewCardServiceClient(conn)
+		if cPort > 0 {
+			conn, err := grpc.Dial(cServer+":"+strconv.Itoa(cPort), grpc.WithInsecure())
+			if err != nil {
+				log.Fatalf("Failure to dial cardserver (%v)", err)
+			}
+			defer conn.Close()
+			client := pbc.NewCardServiceClient(conn)
 
-		_, err = client.AddCards(context.Background(), &pbc.CardList{Cards: cards})
-		if err != nil {
-			log.Fatalf("Failure to add cards: %v", err)
+			_, err = client.AddCards(context.Background(), &pbc.CardList{Cards: cards})
+			if err != nil {
+				log.Fatalf("Failure to add cards: %v", err)
+			}
 		}
 	}
 }
