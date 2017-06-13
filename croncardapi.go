@@ -46,7 +46,7 @@ func main() {
 	if *dryRun {
 		log.Printf("Would write: %v", cards)
 	} else {
-		var host = flag.String("host", "192.168.86.34", "Hostname of server.")
+		var host = flag.String("host", "192.168.86.64", "Hostname of server.")
 		var port = flag.Int("port", 50055, "Port number of server")
 
 		cServer, cPort := getIP("cardserver", *host, *port)
